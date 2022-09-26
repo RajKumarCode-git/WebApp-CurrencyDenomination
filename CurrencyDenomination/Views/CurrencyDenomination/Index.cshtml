@@ -1,0 +1,133 @@
+﻿@model CurrencyDenomination.Models.GBPCurrencyModel
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<div class="form-container m-auto w-50">
+    <h5 class="text-center py-3">Currency Breakup Calculator</h5>
+    @using (Html.BeginForm("CalculateBreakup", "CurrencyDenomination", FormMethod.Post,new {id= "CalculateBreakup" }))
+    {
+        <div class=" form-group row mx-2">
+            <label class="col-3 col-form-label">
+                Price :
+            </label>
+            <div class="col-6">
+                @Html.TextBoxFor(model => model.Price, new { @class = "form-control", placeholder = "Enter Product Price" })
+                @Html.ValidationMessageFor(x => x.Price, "Please Enter Product Price", new { @class = "invalid-feedback", style = "display:none" })
+            </div>
+        </div>
+        <div class=" form-group row mx-2">
+            <label class="col-3 col-form-label">
+                Amount :
+            </label>
+            <div class="col-6">
+                @Html.TextBoxFor(model => model.AmountPaid, new { @class = "form-control", placeholder = "Enter Paid Amount" })
+                @Html.ValidationMessageFor(x => x.AmountPaid, "Please Enter Paid Amount", new { @class = "invalid-feedback", style = "display:none" })
+            </div>
+        </div>
+        <div class="col-12 text-center">
+            <input type="button" class="btn btn-info btn-lg" value="Calculate" id="btnCalculate">
+        </div>
+    }
+
+    <div id="result">
+
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            $('#Price').keypress(function (e) {
+                clearValidation();
+                DecimalOnly(e);
+            });
+
+            $('#AmountPaid').keypress(function (e) {
+                NumericOnly(e);
+            });
+
+            function clearValidation() {
+                $('#Price').removeClass('is-invalid');
+                $('#AmountPaid').removeClass('is-invalid');
+                $('#AmountPaid').next('span').hide();
+                $('#Price').next('span').hide();
+            }
+
+            function NumericOnly(e) {
+                var regex = new RegExp("^[0-9]\d*$");
+                var paidStr = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+                if (regex.test(paidStr)) {
+                    return true;
+                }
+                e.preventDefault();
+                return false;
+            };
+            function DecimalOnly(e) {
+                var regex = new RegExp(/^\d*\.?\d*$/);
+                var priceStr = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+                if (regex.test(priceStr)) {
+                    return true;
+                }
+                e.preventDefault();
+                return false;
+            };
+
+            $('#btnCalculate').click(function () {
+                if (ValidateDetails()) {
+                    var formData = $('#CalculateBreakup').serialize();
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("CalculateBreakup")",
+                    dataType: "json",
+                    data: formData,
+                    success: function (result) {
+                        $('#result').empty();
+                        $('#result').append("<p><u>Your Change is :</u><br></p>")
+                        result.summary.forEach(function (item, index) {
+                            $('#result').append(item +"<br>");
+                        })
+                        $('#result').append("<br>Total change : " + result.balance);
+                    },
+                    error: function (req, status, error) {
+                        console.log(error);
+                    }
+                })
+                }
+            })
+
+            function ValidateDetails() {
+                event = event || window.event || event.srcElement;
+                var return_val = true;
+                if ($('#Price').val().trim() == '') {
+                    $('#Price').addClass('is-invalid');
+                    $('#Price').next('span').show();
+                    return_val = false;
+                } else {
+                    $('#Price').removeClass('is-invalid');
+                    $('#Price').next('span').hide();
+                }
+                if ($('#AmountPaid').val().trim() == '') {
+                    $('#AmountPaid').addClass('is-invalid');
+                    $('#AmountPaid').next('span').show();
+                    return_val = false;
+                } else {
+                    $('#AmountPaid').removeClass('is-invalid');
+                    $('#AmountPaid').next('span').hide();
+                }
+                if ($('#Price').val().trim() > $('#AmountPaid').val()) {
+                    alert("Paid Value Should be greater than Price");
+                    return_val = false;
+                }
+                return return_val;
+            }
+
+        })
+
+    </script>
+}
+
+
+
+
