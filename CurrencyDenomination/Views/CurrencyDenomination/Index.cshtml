@@ -116,7 +116,7 @@
                     $('#AmountPaid').removeClass('is-invalid');
                     $('#AmountPaid').next('span').hide();
                 }
-                if ($('#Price').val().trim() > $('#AmountPaid').val()) {
+                if (parseFloat($('#Price').val()) > parseInt($('#AmountPaid').val())) {
                     alert("Paid Value Should be greater than Price");
                     return_val = false;
                 }
